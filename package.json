@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --config vite.config.content.ts",
     "build:popup": "vite build --config vite.config.popup.ts",
     "build:content": "vite build --config vite.config.content.ts",
-    "build": "tsc -b && npm run build:popup && npm run build:content",
+    "build": "NODE_ENV=prod tsc -b && npm run build:popup && npm run build:content",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -15,15 +15,20 @@
     "@chakra-ui/react": "^3.2.3",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
+    "axios": "^1.7.9",
     "path": "^0.12.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-query": "^3.39.3",
     "react-shadow": "^20.5.0",
     "styled-components": "^6.1.13",
-    "vite-plugin-static-copy": "^2.2.0"
+    "vite-plugin-static-copy": "^2.2.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@chakra-ui/cli": "^3.2.3",
     "@eslint/js": "^9.17.0",
+    "@types/chrome": "^0.0.287",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",

@@ -1,8 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import ContentApp from "./ContentApp";
+import { Provider } from "./components/ui/provider";
+import { STORAGE_KEYS } from "./constants/storage-keys";
 
-function createConversaProContainer() {
+function mountContentApp() {
   const appDiv = document.getElementById("app");
   if (!appDiv) {
     return;
@@ -11,42 +13,53 @@ function createConversaProContainer() {
   appDiv.style.height = "100vh";
 
   const shadowHost = document.querySelector('[id*="mount"]')!;
-  const shadowRoot = shadowHost.attachShadow({ mode: "open" });
+  let shadowRoot = shadowHost.shadowRoot;
+  if (!shadowRoot) {
+    shadowRoot = shadowHost.attachShadow({ mode: "open" });
+    shadowRoot.appendChild(document.createElement("slot"));
+  }
 
-  const conversaProContainer = document.createElement("div");
-  conversaProContainer.id = "conversa-pro-container";
-  conversaProContainer.style.position = "absolute";
-  conversaProContainer.style.width = "300px";
-  conversaProContainer.style.height = "100vh";
-  conversaProContainer.style.top = "0";
-  conversaProContainer.style.right = "0";
-  shadowRoot.appendChild(conversaProContainer);
-  shadowRoot.appendChild(document.createElement('slot'));
+  const contentappContainer = document.createElement("div");
+  contentappContainer.id = "content-app-container";
+  contentappContainer.style.position = "absolute";
+  contentappContainer.style.width = "300px";
+  contentappContainer.style.height = "100vh";
+  contentappContainer.style.top = "0";
+  contentappContainer.style.right = "0";
+  shadowRoot.appendChild(contentappContainer);
 
-  createRoot(conversaProContainer).render(
+  createRoot(contentappContainer).render(
     <StrictMode>
-      <ContentApp />
+      <Provider>
+        <ContentApp />
+      </Provider>
     </StrictMode>
   );
 }
 
-(() => {
-  function observeDOM() {
-    const observer = new MutationObserver(() => {
-      const messageInput = document
-        .querySelector("#main")
-        ?.querySelector('div[contenteditable="true"]');
-      if (messageInput) {
-        createConversaProContainer();
-        observer.disconnect();
-      }
-    });
-
-    // Start observing the DOM for changes
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+function unmountContentApp() {
+  const shadowHost = document.querySelector('[id*="mount"]')!;
+  if (shadowHost.shadowRoot) {
+    shadowHost.shadowRoot.querySelector("#content-app-container")?.remove();
+    const appDiv = document.getElementById("app")!;
+    appDiv.style.width = "100vw";
   }
-  observeDOM();
+}
+
+(() => {
+  chrome.storage.local.get(STORAGE_KEYS.IS_ENABLED, (data) => {
+    if (data[STORAGE_KEYS.IS_ENABLED]) {
+      mountContentApp();
+    }
+  });
+
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes[STORAGE_KEYS.IS_ENABLED]) {
+      if (changes[STORAGE_KEYS.IS_ENABLED].newValue) {
+        mountContentApp();
+      } else {
+        unmountContentApp();
+      }
+    }
+  });
 })();

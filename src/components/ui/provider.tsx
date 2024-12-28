@@ -6,6 +6,9 @@ import { CacheProvider } from "@emotion/react";
 import { useEffect, useState } from "react";
 import root from "react-shadow/emotion";
 import { system } from "./system";
+import { QueryClient, QueryClientProvider } from "react-query";
+
+const queryClient = new QueryClient();
 
 export function Provider(props: {
   children: React.ReactNode;
@@ -27,15 +30,19 @@ export function Provider(props: {
 
   return (
     <root.div ref={setShadow}>
-      {shadow && cache && (
-        <EnvironmentProvider value={() => shadow.shadowRoot ?? document}>
-          <CacheProvider value={cache}>
-            <ChakraProvider value={system}>
-              {props.children}
-            </ChakraProvider>
-          </CacheProvider>
-        </EnvironmentProvider>
-      )}
+      <QueryClientProvider client={queryClient}>
+        {shadow && cache && (
+          <EnvironmentProvider value={() => shadow.shadowRoot ?? document}>
+            <CacheProvider value={cache}>
+              <ChakraProvider value={system}>
+                <div style={{ padding: '10px' }}>
+                  {props.children}
+                </div>
+              </ChakraProvider>
+            </CacheProvider>
+          </EnvironmentProvider>
+        )}
+      </QueryClientProvider>
     </root.div>
   );
 }
